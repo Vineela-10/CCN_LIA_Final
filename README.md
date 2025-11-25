@@ -1,71 +1,143 @@
-## LIA: Latent Image Animator
-Yaohui Wang, Di Yang, François Brémond, Antitza Dantcheva
-### [Project Page](https://wyhsirius.github.io/LIA-project/) | [Paper](https://openreview.net/pdf?id=7r6kDq0mK_)
-This is the official PyTorch implementation of the **ICLR 2022** paper "Latent Image Animator: Learning to Animate Images via Latent Space Navigation" and **TPAMI 2024** paper "LIA: Latent Image Animator".
+# LIA (Latent Image Animator) - Modified for Easy Use
 
-[![Replicate](https://replicate.com/wyhsirius/lia/badge)](https://replicate.com/wyhsirius/lia)
+**Forked from:** [wyhsirius/LIA](https://github.com/wyhsirius/LIA)
 
-<img src="LIA.gif" width="500">
+This is a modified version of the LIA (Latent Image Animator) project that makes it easy to animate still images using Google Colab.
 
-<a href="https://www.inria.fr/"><img height="80" src="assets/logo_inria.png"> </a>
-<a href="https://univ-cotedazur.eu/"><img height="80" src="assets/logo_uca.png"> </a>
+## What This Project Does
 
-Abstract: *Due to the remarkable progress of deep generative models, animating images has become increasingly efficient, whereas associated results have become increasingly realistic. Current animation-approaches commonly exploit structure representation extracted from driving videos. Such structure representation is instrumental in transferring motion from driving videos to still images. However, such approaches fail in case the source image and driving video encompass large appearance variation. Moreover, the extraction of structure information requires additional modules that endow the animation-model with increased complexity. Deviating from such models, we here introduce the Latent Image Animator (LIA), a self-supervised autoencoder that evades need for structure representation. LIA is streamlined to animate images by linear navigation in the latent space. Specifically, motion in generated video is constructed by linear displacement of codes in the latent space. Towards this, we learn a set of orthogonal motion directions simultaneously, and use their linear combination, in order to represent any displacement in the latent space. Extensive quantitative and qualitative analysis suggests that our model systematically and significantly outperforms state-of-art methods on VoxCeleb, Taichi and TED-talk datasets w.r.t. generated quality.*
+Animates a **still image** (like a portrait photo) using motion from a **driving video**. The result is a video where your still image moves, speaks, or acts according to the motion in the driving video.
 
-## Requirements
-- Python 3.7
+**Example Use Case:**
+- **Input:** Your portrait photo + a video of someone talking
+- **Output:** Your photo animated to look like it's talking!
+
+## My Modifications
+
+### 1. **PyTorch Compatibility Fix**
+Fixed a critical bug in `run_demo.py` for PyTorch 2.0+ compatibility:
+```python
+# Original (causes error):
+weight = torch.load(model_path, map_location=lambda storage, loc: storage)['gen']
+
+# Fixed version:
+weight = torch.load(model_path, map_location=lambda storage, loc: storage, weights_only=False)['gen']
+```
+
+### 2. **Google Colab Integration**
+Created `LIA_COLAB.ipynb` notebook for easy cloud-based execution with:
+- Automated setup and dependency installation
+- Automatic model download from Google Drive
+- GPU acceleration (free via Google Colab)
+- No local installation required
+
+### 3. **Interactive Interface**
+Added user-friendly file upload interface:
+- Upload your own source image
+- Upload your own driving video
+- Process and download results with one click
+- Real-time progress indicators
+
+### 4. **CPU Support** 
+Modified `run_demo.py` to automatically detect and use available hardware (GPU or CPU)
+
+## How to Use
+
+### Option 1: Google Colab (Recommended - No Setup Required!)
+
+1. Open `LIA_COLAB.ipynb` in Google Colab
+2. Click **Runtime → Run all** (or run cells sequentially)
+3. Wait for setup to complete (~2 minutes)
+4. See the demo animation with the provided sample
+5. **For your own images:**
+   - Scroll to the interactive section
+   - Upload your source image when prompted
+   - Upload your driving video when prompted
+   - Wait 2-5 minutes for processing
+   - Download your animated result automatically!
+
+**Colab provides free GPU access, making processing much faster than local CPU execution.**
+
+### Option 2: Local Installation
+
+**Requirements:**
+- Python 3.7+
 - PyTorch 1.5+
-- tensorboard
-- moviepy
-- av
-- tqdm
-- lpips
+- CUDA-capable GPU (recommended) or CPU
 
-## 1. Animation demo
+**Setup:**
+```bash
+# Clone the repository
+git clone https://github.com/Vineela-10/CCN_LIA_Final.git
+cd CCN_LIA_Final
 
-Download pre-trained checkpoints from [here](https://drive.google.com/drive/folders/1N4QcnqUQwKUZivFV-YeBuPyH4pGJHooc?usp=sharing) and put models under `./checkpoints`. We have provided several demo source images and driving videos in `./data`. 
-To obtain demos, you could run following commands, generated results will be saved under `./res`.
-```shell script
-python run_demo.py --model vox --source_path ./data/vox/macron.png --driving_path ./data/vox/driving1.mp4 # using vox model
-python run_demo.py --model taichi --source_path ./data/taichi/subject1.png --driving_path ./data/taichi/driving1.mp4 # using taichi model
-python run_demo.py --model ted --source_path ./data/ted/subject1.png --driving_path ./data/ted/driving1.mp4 # using ted model
-```
-If you would like to use your own image and video, indicate `<SOURCE_PATH>` (source image), `<DRIVING_PATH>` (driving video), `<DATASET>` and run   
-```shell script
-python run_demo.py --model <DATASET> --source_path <SOURCE_PATH> --driving_path <DRIVING_PATH>
+# Install dependencies
+pip install torch torchvision av tqdm lpips moviepy imageio-ffmpeg
+
+# Download pre-trained models
+# Download from: https://drive.google.com/drive/folders/1N4QcnqUQwKUZivFV-YeBuPyH4pGJHooc
+# Place the .pt files in ./checkpoints/
 ```
 
-## 2. Evaluation
-To obtain reconstruction and LPIPS results, put checkpoints under `./checkpoints` and run
-```shell script
-python evaluation.py --dataset <DATASET> --save_path <SAVE_PATH>
+**Run Demo:**
+```bash
+python run_demo.py --model vox --source_path ./data/vox/macron.png --driving_path ./data/vox/driving1.mp4
 ```
-Generated videos will be save under `<SAVE_PATH>`. For other evaluation metrics, we use the code from [here](https://github.com/AliaksandrSiarohin/pose-evaluation).
-## 3. Linear manipulation
-To obtain linear manipulation results of a single image, run
-```shell script
-python linear_manipulation.py --model <DATAET> --img_path <IMAGE_PATH> --save_folder <RESULTS_PATH>
+
+**Use Your Own Files:**
+```bash
+python run_demo.py --model vox --source_path YOUR_IMAGE.jpg --driving_path YOUR_VIDEO.mp4
 ```
-By default, results will be saved under `./res_manipulation`.
 
-## Acknowledgement
-Part of the code is adapted from [FOMM](https://github.com/AliaksandrSiarohin/first-order-model) and [MRAA](https://github.com/snap-research/articulated-animation). We thank authors for their contribution to the community.
+Results will be saved in `./res/vox/`
 
-## BibTex
-```bibtex
-@inproceedings{
-wang2022latent,
-title={Latent Image Animator: Learning to Animate Images via Latent Space Navigation},
-author={Yaohui Wang and Di Yang and Francois Bremond and Antitza Dantcheva},
-booktitle={International Conference on Learning Representations},
-year={2022}
-}
+## Project Structure
 
-@ARTICLE{10645735,
-  author={Wang, Yaohui and Yang, Di and Bremond, Francois and Dantcheva, Antitza},
-  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence}, 
-  title={LIA: Latent Image Animator}, 
-  year={2024},
-  pages={1-16},
-}
 ```
+CCN_LIA_Final/
+├── LIA_COLAB.ipynb          # Google Colab notebook (main interface)
+├── run_demo.py              # Fixed demo script with CPU/GPU support
+├── checkpoints/             # Pre-trained models (download separately)
+├── data/                    # Sample images and videos
+│   └── vox/                # VoxCeleb samples (talking faces)
+├── networks/               # Neural network architecture
+├── res/                    # Output results folder
+└── README.md              # This file
+```
+
+## Technical Details
+
+**Model Used:** VoxCeleb (VOX) - trained on talking face videos, optimized for facial animation and lip-sync
+
+**Key Features:**
+- Self-supervised learning - no keypoint annotations needed
+- Linear latent space navigation for smooth motion
+- Works with any face image and driving video
+- Maintains source identity while transferring motion
+
+## Limitations
+
+- Works best when source image and driving video have similar viewpoints
+- Requires clear, well-lit images for optimal results
+- Processing time: 2-5 minutes per video (depends on video length and hardware)
+- Large appearance variations between source and driving may reduce quality
+
+## Credits
+
+**Original Authors:** Yaohui Wang, Di Yang, François Brémond, Antitza Dantcheva
+
+**Original Papers:**
+- ICLR 2022: "Latent Image Animator: Learning to Animate Images via Latent Space Navigation"
+- TPAMI 2024: "LIA: Latent Image Animator"
+
+**Original Repository:** https://github.com/wyhsirius/LIA
+
+**Modifications by:** Vineela-10
+
+## License
+
+This project follows the original LIA license. See LICENSE.md for details.
+
+## Acknowledgments
+
+Part of the original code adapted from [FOMM](https://github.com/AliaksandrSiarohin/first-order-model) and [MRAA](https://github.com/snap-research/articulated-animation).
